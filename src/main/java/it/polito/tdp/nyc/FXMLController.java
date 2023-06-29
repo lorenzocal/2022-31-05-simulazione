@@ -5,8 +5,11 @@
 package it.polito.tdp.nyc;
 
 import java.net.URL;
+import java.util.LinkedList;
 import java.util.ResourceBundle;
 import it.polito.tdp.nyc.model.Model;
+import it.polito.tdp.nyc.model.QuartiereAdiacente;
+import it.polito.tdp.nyc.model.Simulatore;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -39,7 +42,7 @@ public class FXMLController {
     private ComboBox<String> cmbProvider; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbQuartiere"
-    private ComboBox<?> cmbQuartiere; // Value injected by FXMLLoader
+    private ComboBox<String> cmbQuartiere; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtMemoria"
     private TextField txtMemoria; // Value injected by FXMLLoader
@@ -58,17 +61,29 @@ public class FXMLController {
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
-    	
+    	String provider = this.cmbProvider.getValue();
+    	this.model.creaGrafo(provider);
+    	this.txtResult.appendText("Vertci: " + this.model.getGrafo().vertexSet().size() + "\n");
+    	this.txtResult.appendText("Archi: " + this.model.getGrafo().edgeSet().size() + "\n");
+    	this.cmbQuartiere.getItems().setAll(new LinkedList<String>(this.model.getGrafo().vertexSet()));
     }
 
     @FXML
     void doQuartieriAdiacenti(ActionEvent event) {
-    	
+    	String city = this.cmbQuartiere.getValue();
+    	for (QuartiereAdiacente qa : this.model.quartieriAdiacenti(city)) {
+    		this.txtResult.appendText(qa + "\n");
+    	}
     }
 
     @FXML
     void doSimula(ActionEvent event) {
-
+    	String provider = this.cmbProvider.getValue();
+    	String city = this.cmbQuartiere.getValue();
+    	Integer nTecnici = Integer.parseInt(this.txtMemoria.getText());
+    	Simulatore simulatore = new Simulatore(provider, city, nTecnici, this.model);
+    	simulatore.revisionaQuartiere();
+    	simulatore.run();
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -87,6 +102,7 @@ public class FXMLController {
     
     public void setModel(Model model) {
     	this.model = model;
+    	this.cmbProvider.getItems().setAll(this.model.getAllProviders());
     }
 
 }
